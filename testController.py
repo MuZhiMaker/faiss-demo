@@ -11,6 +11,7 @@ flask： web框架，通过flask提供的装饰器@server.route()将普通函数
 '''
 # 创建一个服务，把当前这个python文件当做一个服务
 server = flask.Flask(__name__)
+
 # server.config['JSON_AS_ASCII'] = False
 # @server.route()可以将普通函数转变为服务 登录接口的路径、请求方式
 @server.route('/login', methods=['get', 'post'])
@@ -38,35 +39,43 @@ def search():
     topK = request.values.get('topK')
     if topK is None:
         topK = 5
+        
+    # 当前文件所在的目录
+    import os
+    current_work_dir = os.path.dirname(__file__)
+    weight_path=''
+    weight_path = os.path.join(current_work_dir, weight_path)
     topK = int(topK)
     if query and topK:
         # 计算时间差
         wholeStartTime = time.time()
         startTime = time.time()
-        dataDir = "/Users/lijunjun/PycharmProjects/faiss-demo/example02/data/input"
+        dataDir = os.path.join(weight_path, 'example02/data/input')
         allFiles = next(walk(dataDir), (None, None, []))[2]
         frames = []
         for i in range(len(allFiles)):
             file = allFiles[i]
             print(file)
-            frames.append(pd.read_csv("/Users/lijunjun/PycharmProjects/faiss-demo/example02/data/input/"+file, sep="`",header=None, names=["sentence"]))
+            frames.append(pd.read_csv(dataDir + '/' +file, sep="`",header=None, names=["sentence"]))
         df = pd.concat(frames, axis=0, ignore_index=True)
         print("载入原始数据完毕，数据量", len(df))
         print("载入原始数据完毕，耗时", time.time() - startTime, "秒")
         startTime = time.time()
-        index = faiss.read_index('/Users/lijunjun/PycharmProjects/faiss-demo/example02/my.index')
+        indexPath = os.path.join(weight_path, 'example02/my.index')
+        index = faiss.read_index(indexPath)
         print("载入索引完毕，耗时", time.time() - startTime, "秒")
         # 尝试进行查询
         from sentence_transformers import SentenceTransformer
         import os 
         startTime = time.time()
-        if os.path.exists('/Users/lijunjun/PycharmProjects/faiss-demo/example02/uer_sbert-base-chinese-nli'):
+        uerSbertBaseChineseNliPath = os.path.join(current_work_dir, 'example02/uer_sbert-base-chinese-nli')
+        if os.path.exists(uerSbertBaseChineseNliPath):
             print("本地存在模型")
-            model = SentenceTransformer('/Users/lijunjun/PycharmProjects/faiss-demo/example02/uer_sbert-base-chinese-nli')
+            model = SentenceTransformer(uerSbertBaseChineseNliPath)
         else:
             print("本地不存在模型")
             model = SentenceTransformer('uer/sbert-base-chinese-nli')
-            model.save("/Users/lijunjun/PycharmProjects/faiss-demo/example02/uer_sbert-base-chinese-nli")
+            model.save(uerSbertBaseChineseNliPath)
         print("载入模型完毕")
         print("载入模型完毕，耗时", time.time() - startTime, "秒")
 

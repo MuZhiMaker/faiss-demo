@@ -35,7 +35,11 @@ def login():
 def search():
     # 获取通过url请求传参的数据
     query = request.values.get('query')
-    if query:
+    topK = request.values.get('topK')
+    if topK is None:
+        topK = 5
+    topK = int(topK)
+    if query and topK:
         # 计算时间差
         wholeStartTime = time.time()
         startTime = time.time()
@@ -68,7 +72,6 @@ def search():
 
         # 存储查询结果
         results = []
-        topK = 5
 
         startTime = time.time()
         startTime = time.time()
